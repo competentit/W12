@@ -39,6 +39,7 @@
     "t:test": "truffle test",
     "flat": "truffle-flattener",
     "test": "npm run t:test",
+    "coverage": "solidity-coverage",
     "gen-release": "node ./shared/scripts/gen-release.js"
   },
   "devDependencies": {
