@@ -1,0 +1,69 @@
+defaults: &defaults
+  docker:
+  - image: circleci/node:8.11
+  working_directory: ~/code
+
+version: 2
+jobs:
+  setup:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - run: sudo npm i -g npm && npm -v
+      - run: sudo npm i -g truffle
+      - run: cp example.config.js config.js
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}-{{ checksum "ethpm.json" }}
+            - v1-dependencies-
+      - run: npm ci
+      - run: truffle install
+      - save_cache:
+          paths:
+            - node_modules
+            - installed_contracts
+            - config.js
+          key: v1-dependencies-{{ checksum "package-lock.json" }}-{{ checksum "ethpm.json" }}
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - run: sudo npm i -g npm && npm -v
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}-{{ checksum "ethpm.json" }}
+            - v1-dependencies-
+      - run: npm run ci-test
+  deploy_alpha_release:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: git submodule update --init --recursive
+      - run: sudo npm i -g npm && npm -v
+      - run: git config --global user.name "CircleCI"
+      - run: git config --global user.email "mr.hokid@gmail.com"
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}-{{ checksum "ethpm.json" }}
+            - v1-dependencies-
+      - run:
+          command: npm run ci-deploy-test-net
+          no_output_timeout: 1h
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - setup
+      - test:
+          requires:
+            - setup
+      - deploy_alpha_release:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - alpha-release
