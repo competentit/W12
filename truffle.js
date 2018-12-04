@@ -14,6 +14,13 @@ module.exports = {
             gasPrice: 0,
             gas: 8000000
         },
+        coverage: {
+            host: "localhost",
+            network_id: "*",
+            port: 8555,
+            gas: 0xfffffffffff,
+            gasPrice: 0x01
+        },
         test: {
             provider() {
                 return new HDWalletProvider(deployConfig.mnemonic, `https://rinkeby.infura.io/v3/${deployConfig.infuraKey}`)
